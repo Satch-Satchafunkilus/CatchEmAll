@@ -9,50 +9,76 @@ import SwiftUI
 
 struct CreaturesListView: View {
     @State var creatures = CreaturesModel()
+    @State var searchText: String = ""
+
+    var searchResults: [CreatureModel] {
+        if searchText.isEmpty {
+            return creatures.creaturesList
+        } else {
+            return creatures.creaturesList.filter {
+                $0.name.capitalized.contains(searchText)
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
-            List(0..<creatures.creaturesList.count, id: \.self) { index in
-                // LazyVStack loads a one "row" at a time
-                LazyVStack {
-                    NavigationLink {
-                        DetailView(creature: creatures.creaturesList[index])
-                    } label: {
-                        Text(
-                            "\(index + 1). \(creatures.creaturesList[index].name.capitalized)"
-                        )
-                        .font(.title2)
+            ZStack {
+                List(searchResults) { creature in
+                    // LazyVStack loads a one "row" at a time
+                    LazyVStack {
+                        NavigationLink {
+                            CreatureDetailView(creature: creature)
+                        } label: {
+                            Text("\(returnCreatureIndex(of: creature)). \(creature.name.capitalized)")
+                                .font(.title2)
+                        }
+                    }
+                    .task {
+                        await creatures.loadNextPageIfNeeded(creature: creature)
                     }
                 }
-                .task {
-                    guard let lastCreature = creatures.creaturesList.last else {
-                        return
+                .listStyle(.plain)
+                .navigationTitle("Pokemon")
+                .toolbar {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button("Load All") {
+                            Task {
+                                await creatures.loadAllData()
+                            }
+                        }
                     }
 
-                    // If the last element has the same "name" as the creature
-                    // that was just loaded by the `LazyVStack`, and the "next"
-                    // JSON element (`creature.urlString`) is not NULL (will start
-                    // with "http")
-                    if creatures.creaturesList[index].name == lastCreature.name
-                        && creatures.urlString.hasPrefix("http")
-                    {
-                        await creatures.getData()
+                    ToolbarItem(placement: .status) {
+                        Text(
+                            "\(creatures.creaturesList.count) of \(creatures.count) Creatures"
+                        )
                     }
                 }
-            }
-            .listStyle(.plain)
-            .navigationTitle("Pokemon")
-            .toolbar {
-                ToolbarItem(placement: .status) {
-                    Text(
-                        "\(creatures.creaturesList.count) of \(creatures.count) Creatures"
-                    )
+                .searchable(text: $searchText)
+
+                if creatures.isLoading {
+                    ProgressView()
+                        .tint(.red)
+                        .scaleEffect(4.0)
                 }
             }
         }
         .task {
             await creatures.getData()
         }
+    }
+
+    func returnCreatureIndex(of creature: CreatureModel) -> Int {
+        guard
+            let index = creatures.creaturesList.firstIndex(where: {
+                $0.id == creature.id
+            })
+        else {
+            return 0
+        }
+
+        return index + 1
     }
 }
 

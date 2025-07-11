@@ -1,5 +1,5 @@
 //
-//  DetailView.swift
+//  CreatureDetailView.swift
 //  CatchEmAll
 //
 //  Created by Tushar Munge on 7/9/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DetailView: View {
+struct CreatureDetailView: View {
     let creature: CreatureModel
     
     @State private var creatureDetail = CreatureDetailModel()
@@ -26,24 +26,7 @@ struct DetailView: View {
                 .padding(.bottom)
 
             HStack {
-                AsyncImage(url: URL(string: creatureDetail.imageURL)) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .background(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(radius: 8, x: 5, y: 5)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(.gray.opacity(0.5), lineWidth: 1)
-                        }
-                } placeholder: {
-                        RoundedRectangle(cornerRadius: 10)
-                            .foregroundStyle(.clear)
-                            
-                }
-                .frame(width: 96, height: 96)
-                .padding(.trailing)
+                creatureImage
 
                 VStack(alignment: .leading) {
                     HStack(alignment: .top) {
@@ -81,8 +64,44 @@ struct DetailView: View {
     }
 }
 
+extension CreatureDetailView {
+    var creatureImage: some View {
+        AsyncImage(url: URL(string: creatureDetail.imageURL)) { imagePhase in
+            if let image = imagePhase.image {
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .background(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(radius: 8, x: 5, y: 5)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(.gray.opacity(0.5), lineWidth: 1)
+                    }
+            } else if imagePhase.error != nil {
+                Image(systemName: "questionmark.square.dashed")
+                    .resizable()
+                    .scaledToFit()
+                    .background(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(radius: 8, x: 5, y: 5)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(.gray.opacity(0.5), lineWidth: 1)
+                    }
+            } else {
+                ProgressView()
+                    .tint(.red)
+                    .scaleEffect(4)
+            }
+        }
+        .frame(width: 96, height: 96)
+        .padding(.trailing)
+    }
+}
+
 #Preview {
-    DetailView(
+    CreatureDetailView(
         creature: CreatureModel(
             name: "bulbasaur",
             url: "https://pokeapi.co/api/v2/pokemon/1/"

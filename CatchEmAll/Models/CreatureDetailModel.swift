@@ -21,7 +21,19 @@ class CreatureDetailModel {
     }
     
     struct Sprite: Codable {
-        var front_default: String
+        var other: Other
+    }
+    
+    struct Other: Codable {
+        var officalArtwork: OfficialArtork
+        
+        enum CodingKeys: String, CodingKey {
+            case officalArtwork = "official-artwork"
+        }
+    }
+    
+    struct OfficialArtork: Codable {
+        var front_default: String?
     }
     
     func getData() async {
@@ -46,7 +58,7 @@ class CreatureDetailModel {
             
             self.height = returned.height
             self.weight = returned.weight
-            self.imageURL = returned.sprites.front_default
+            self.imageURL = returned.sprites.other.officalArtwork.front_default ?? "n/a"
             
             
         } catch {
