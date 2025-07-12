@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct CreaturesListView: View {
-    @State var creatures = CreaturesModel()
-    @State var searchText: String = ""
+    @State private var creatures = CreaturesModel()
+    @State private var searchText: String = ""
 
     var searchResults: [CreatureModel] {
         if searchText.isEmpty {

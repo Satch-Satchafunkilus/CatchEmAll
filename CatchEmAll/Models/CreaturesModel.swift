@@ -40,10 +40,7 @@ class CreaturesModel {
 
             // Try to decode JSON data into our own data structures, `Returned` in our case
             guard
-                let returned = try? JSONDecoder().decode(
-                    Returned.self,
-                    from: data
-                )
+                let returned = try? JSONDecoder().decode(Returned.self, from: data)
             else {
                 print("😡 JSON ERROR: Could not decode returned JSON data")
 
